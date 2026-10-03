@@ -1,0 +1,216 @@
+FINAL PROJECT REPORT
+
+1. COVER PAGE
+
+Project Title: Server Request Load Distributor
+Submitted by: Thakur Shikhar - 25MVCSMR0682
+Department & College: Department of Computer Science & Engineering, [Insert College Name]
+Guide Name: Sathwika V
+Academic Year: 2025-2026
+
+---
+
+2. ABSTRACT & INTRODUCTION
+
+Project Overview:
+This project demonstrates an intelligent, real-time load distribution system designed to route incoming computing workloads across specialized worker servers. Instead of relying on round-robin or blind shortest-queue algorithms, the load balancer dynamically calculates the optimal server for every incoming request using a Cost-Minimization Greedy Algorithm powered by a Min-Heap Priority Queue.
+
+Problem Background:
+In distributed computing, routing requests based solely on queue lengths leads to severe bottlenecks ("Thundering Herd" problems) and poor hardware utilization. High-capacity servers may remain underutilized while lightweight servers get crushed by heavy processing tasks, or vice versa.
+
+Proposed Solution:
+A load-balancing architecture that factors in incoming request workloads alongside server-specific performance profiles (setup overheads and processing throughput). By tracking live backlogs and applying a bounded-concurrency model using semaphores, the system ensures optimal performance and prevents server crashes under heavy load.
+
+Purpose of the Project:
+To provide a concrete implementation and visualization of key Data Structures and Algorithms (DAA) concepts—specifically Greedy Choice strategies and Min-Heap Priority Queues—applied to solve real-world distributed system scheduling challenges.
+
+---
+
+3. PROBLEM STATEMENT, OBJECTIVES & SCOPE
+
+Problem Statement:
+Standard load balancers fail to account for job size and server hardware specialization, resulting in inefficient task execution, unhandled concurrency spikes, and lack of mathematical transparency in request routing choices.
+
+Project Objectives:
+
+* Implement a Min-Completion-Time Greedy scheduling algorithm.
+* Integrate a Min-Heap Priority Queue (heapq) to dynamically evaluate and extract the optimal server.
+* Prevent server overloading by enforcing strict concurrent request limits using Semaphores.
+* Stagger incoming request flow using rate-limiting mechanics to model realistic traffic arrival.
+* Provide detailed execution logs exposing the exact mathematical calculations behind each routing decision.
+
+Project Scope:
+
+* Core backend routing engine written in Python (Flask).
+* Simulation of multiple worker servers with distinct hardware traits (setup time and processing speed).
+* Rate-limited asynchronous request transmission from the client interface.
+
+Target Users:
+
+* Students and educators analyzing algorithm performance and scheduling techniques.
+* System architects and developers studying load-balancing strategies in distributed applications.
+
+---
+
+4. FEATURES & FUNCTIONAL REQUIREMENTS
+
+Main Features:
+
+* Cost-Aware Greedy Routing: Evaluates job size against server execution traits to pick the fastest server.
+* Min-Heap Server Selection: Uses a priority queue structure to maintain order based on calculated completion times.
+* Stalled Queue Management: Implements bounded concurrency per server using semaphores to queue excess requests safely.
+* Real-Time Execution Tracking: Tracks dynamic backlog growth and drainage post-execution.
+* Staggered Arrival Simulation: Introduces client-side rate-limiting to prevent burst traffic bottlenecks.
+
+User Functionalities:
+
+* Launch multi-request simulation batches.
+* View real-time request transmission status.
+* Inspect decision logs containing mathematical proofs for every routing choice.
+
+Authentication & Validation:
+
+* Input validation on incoming HTTP payloads ensuring request identifiers and numerical workload parameters are present.
+
+System Requirements:
+
+* Python 3.x runtime environment.
+* Required Python Libraries: flask, flask_cors, requests.
+* Modern Web Browser (Chrome, Firefox, Edge) for client execution.
+
+---
+
+5. ALGORITHMS & METHODOLOGY
+
+System Workflow:
+
+1. Client generates requests containing specific workload units and sends them with a 50ms rate-limited delay.
+2. The Load Balancer receives the request and extracts the workload size.
+3. The load balancer calculates the expected completion time across all candidate servers.
+4. Candidate servers are inserted into a Min-Heap Priority Queue sorted by calculated completion time.
+5. The algorithm pops the top candidate (the minimum calculated execution time).
+6. The winning server's backlog is updated with the new workload.
+7. The request acquires a semaphore slot; if max concurrency (3) is reached, the request stalls until a slot opens.
+8. The request is proxied via HTTP POST to the assigned backend server.
+9. Upon completion, the semaphore slot is freed and the server's backlog is drained.
+10. Complete decision logs and mathematical proofs are returned to the user interface.
+
+Algorithms Used:
+
+1. Cost-Minimization Greedy Algorithm (Min-Completion-Time Scheduling):
+Makes locally optimal routing decisions for each arriving request without requiring knowledge of future traffic.
+2. Min-Heap Priority Queue (heapq):
+Sorts server candidates by calculated execution cost, allowing O(log k) extraction of the optimal server.
+
+The Equation:
+Calculated Estimated Time (T) = Setup Time + ((Current Backlog + Incoming Workload) / Processing Speed)
+
+Where:
+
+* Setup Time: Fixed initialization delay in milliseconds (ms).
+* Current Backlog: Pending workload units (u) queued on the server.
+* Incoming Workload: Workload units (u) required by the new task.
+* Processing Speed: Execution throughput (workload units per ms).
+
+Mathematical Selection Criterion:
+S_best = argmin_i ( Setup_i + ( (Backlog_i + Workload_new) / Speed_i ) )
+
+Development Methodology:
+Iterative modular development focusing on backend API design, thread safety, state locking, algorithmic correctness, and client-server integration.
+
+Data Flow:
+Client Request Payload -> Flask Distributor Endpoint -> Thread-Locked Backlog State -> Math Calculation & Priority Queue Construction -> Heap Extract Minimum -> Semaphore Acquire -> HTTP Proxy to Worker Server -> Task Execution -> Semaphore Release -> Thread-Locked Backlog Drain -> HTTP Response to Client.
+
+---
+
+6. TECHNOLOGIES & IMPLEMENTATION
+
+Frontend Technologies:
+
+* HTML5
+* CSS3
+* JavaScript (Fetch API, Async/Await, Promises)
+
+Backend Technologies:
+
+* Python 3
+* Flask (Web Framework)
+* Flask-CORS (Cross-Origin Resource Sharing handling)
+* Threading Module (Lock, Semaphore for concurrency control)
+* Heapq Module (Priority Queue implementation)
+* Requests Library (HTTP Proxying)
+
+Implementation Details:
+
+* Server Configuration:
+* Server A (Heavy): 15.0ms setup delay, 10.0 units/ms processing speed (designed for heavy workloads).
+* Server B (General): 5.0ms setup delay, 3.0 units/ms processing speed (balanced general purpose).
+* Server C (Fast): 0.0ms setup delay, 1.0 units/ms processing speed (instant setup, slow compute for small tasks).
+
+
+* Bounded Concurrency:
+MAX_CONCURRENT_REQUESTS set to 3 using threading.Semaphore to enforce capacity limits per server.
+* Synchronization:
+threading.Lock applied around shared heap state modifications to maintain thread safety across concurrent requests.
+
+---
+
+7. RESULTS, TESTING & PERFORMANCE
+
+Project Results:
+
+* Small Workloads (e.g., 5 units): The system dynamically routes to Server C (Fast) because its 0.0ms setup delay outweighs its slower compute speed for small tasks.
+* Large Workloads (e.g., 80 units): The system routes to Server A (Heavy) because its fast execution speed (10 units/ms) easily compensates for its 15.0ms setup penalty.
+* Heavy Traffic Spikes: Requests beyond the 3-slot concurrency limit are held safely in a stalled state by semaphores without dropping connections or causing server crashes.
+
+Test Cases:
+
+1. Single Small Request Test:
+* Input: Workload = 5 units.
+* Expected Result: Assigned to Server C.
+* Actual Result: Assigned to Server C (Fast) due to lowest estimated completion time.
+
+
+2. Single Large Request Test:
+* Input: Workload = 80 units.
+* Expected Result: Assigned to Server A.
+* Actual Result: Assigned to Server A (Heavy) due to high throughput capacity.
+
+
+3. Concurrency Limit Test:
+* Input: 5 simultaneous requests sent to a single server port.
+* Expected Result: First 3 process immediately, remaining 2 stall until earlier requests complete.
+* Actual Result: Semaphore blocks 4th and 5th requests until release() is called by completing threads.
+
+
+
+Testing Methods:
+
+* Unit testing of route handling functions.
+* Integration testing of HTTP request proxying to local server ports.
+* Load testing via client-side rate-limited batch generation.
+
+Performance Analysis:
+
+* Priority Queue construction and extraction operates efficiently at O(k log k) time complexity per request (where k is the number of servers).
+* Backlog memory utilization remains stable due to post-execution drainage routines.
+* Thread safety guarantees data consistency under concurrent request evaluation.
+
+---
+
+8. CONCLUSION, FUTURE SCOPE & REFERENCES
+
+Project Conclusion:
+The project successfully demonstrates a Cost-Aware Greedy Load Balancing system driven by a Min-Heap Priority Queue and concurrency semaphores. By incorporating hardware trait parameters (setup time and processing speed) into the decision formula, the system proves that context-aware routing far outperforms basic shortest-queue techniques in distributed environments.
+
+Future Scope:
+
+* Integration of live dynamic hardware monitoring (CPU and RAM usage tracking).
+* Implementation of auto-scaling server instances based on total pool load thresholds.
+* Advanced fault tolerance mechanisms for automatic node failover upon worker offline events.
+
+References / Documentation:
+
+* Python Standard Library Documentation (`heapq`, `threading`).
+* Flask Framework Documentation (`flask.Flask`, `flask.jsonify`).
+* Operating System Concepts & Queuing Theory Fundamentals.
